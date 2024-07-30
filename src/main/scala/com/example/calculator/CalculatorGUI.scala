@@ -2,8 +2,9 @@ package com.example.calculator
 
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
+import scalafx.geometry.Insets
 import scalafx.scene.Scene
-import scalafx.scene.control.{Button, Label}
+import scalafx.scene.control.{Button, Label, Tooltip}
 import scalafx.scene.layout.{GridPane, VBox}
 import scalafx.scene.paint.Color
 
@@ -13,50 +14,80 @@ object CalculatorGUI extends JFXApp {
     text = "0"
     style = "-fx-font-size: 30pt; -fx-text-fill: white; -fx-background-color: black; -fx-background-radius: 15px; -fx-padding: 20px; -fx-alignment: center-right;"
     minWidth = 320
+    wrapText = true
   }
 
   def updateDisplay(): Unit = {
-    if (calculator.getCurrentInput.isEmpty) {
-      displayLabel.text = calculator.getCurrentResult.toString
-    } else {
-      displayLabel.text = calculator.getCurrentInput
-    }
+    displayLabel.text = calculator.getCurrentExpression
   }
 
   def showError(message: String): Unit = {
     displayLabel.text = message
   }
 
+  val buttonSize = 80
+  val buttonFontSize = 20
+
   val buttons = Seq(
-    "C", "", "", "/",
-    "7", "8", "9", "*",
-    "4", "5", "6", "-",
-    "1", "2", "3", "+",
-    "0", ".", "="
-  ).map { label =>
+    ("C", "clear"), ("sin", "sin"), ("cos", "cos"), ("tan", "tan"),
+    ("7", "digit"), ("8", "digit"), ("9", "digit"), ("/", "operator"),
+    ("4", "digit"), ("5", "digit"), ("6", "digit"), ("*", "operator"),
+    ("1", "digit"), ("2", "digit"), ("3", "digit"), ("-", "operator"),
+    ("0", "digit"), (".", "decimal"), ("=", "equals"), ("+", "operator"),
+    ("ln", "ln"), ("log", "log"), ("√", "sqrt"), ("^", "operator"),
+    ("%", "percent"), ("n!", "factorial")
+  ).map { case (label, buttonType) =>
     val btn = new Button(label) {
-      style = "-fx-font-size: 20pt; -fx-pref-width: 80px; -fx-pref-height: 80px; -fx-background-radius: 40px; -fx-text-fill: white;"
-      if (label.isEmpty) {
-        style = "-fx-background-color: transparent;"
-        disable = true
-      } else if ("0123456789".contains(label)) {
-        style = style() + "; -fx-background-color: #505050;"
-      } else if (label == "0") {
-        style = style() + "; -fx-background-color: #505050; -fx-pref-width: 170px; -fx-background-radius: 40px;"
-        minWidth = 160 // Ensure it spans two columns
-      } else if (label == "C") {
-        style = style() + "; -fx-background-color: #ff9500;"
-      } else if (label == "=") {
-        style = style() + "; -fx-background-color: #ff9500;"
-      } else {
-        style = style() + "; -fx-background-color: #d4d4d2; -fx-text-fill: black;"
+      minWidth = buttonSize
+      minHeight = buttonSize
+      style = buttonType match {
+        case "digit" => s"-fx-font-size: ${buttonFontSize}pt; -fx-background-color: #505050; -fx-text-fill: white; -fx-background-radius: 40px;"
+        case "operator" => s"-fx-font-size: ${buttonFontSize}pt; -fx-background-color: #d4d4d2; -fx-text-fill: black; -fx-background-radius: 40px;"
+        case "clear" | "equals" => s"-fx-font-size: ${buttonFontSize}pt; -fx-background-color: #ff9500; -fx-text-fill: white; -fx-background-radius: 40px;"
+        case _ => s"-fx-font-size: ${buttonFontSize}pt; -fx-background-color: #d4d4d2; -fx-text-fill: black; -fx-background-radius: 40px;"
       }
+      tooltip = new Tooltip(label match {
+        case "sin" => "Sine"
+        case "cos" => "Cosine"
+        case "tan" => "Tangent"
+        case "ln" => "Natural Logarithm"
+        case "log" => "Logarithm"
+        case "√" => "Square Root"
+        case "^" => "Exponentiation"
+        case "%" => "Percentage"
+        case "n!" => "Factorial"
+        case _ => label
+      })
       onAction = _ => handleButtonClick(label)
     }
     btn
   }
 
   def handleButtonClick(label: String): Unit = label match {
+    case "sin" =>
+      calculator.inputSine()
+      updateDisplay()
+    case "cos" =>
+      calculator.inputCosine()
+      updateDisplay()
+    case "tan" =>
+      calculator.inputTangent()
+      updateDisplay()
+    case "ln" =>
+      calculator.inputLn()
+      updateDisplay()
+    case "log" =>
+      calculator.inputLog()
+      updateDisplay()
+    case "√" =>
+      calculator.inputSquareRoot()
+      updateDisplay()
+    case "%" =>
+      calculator.inputPercentage()
+      updateDisplay()
+    case "n!" =>
+      calculator.inputFactorial()
+      updateDisplay()
     case digit if "0123456789".contains(digit) =>
       calculator.inputDigit(digit)
       updateDisplay()
@@ -73,7 +104,7 @@ object CalculatorGUI extends JFXApp {
     case "C" =>
       calculator.clear()
       updateDisplay()
-    case op if "+-*/".contains(op) =>
+    case op if "+-*/^".contains(op) =>
       calculator.setOperation(op)
       updateDisplay()
   }
@@ -83,6 +114,8 @@ object CalculatorGUI extends JFXApp {
     scene = new Scene {
       fill = Color.Black
       content = new VBox {
+        padding = Insets(20)
+        spacing = 10
         children = Seq(
           displayLabel,
           new GridPane {
