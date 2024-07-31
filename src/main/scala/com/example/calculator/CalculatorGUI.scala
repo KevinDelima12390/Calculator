@@ -64,6 +64,9 @@ object CalculatorGUI extends JFXApp {
   }
 
   def handleButtonClick(label: String): Unit = label match {
+    case digit if "0123456789".contains(digit) =>
+      calculator.inputDigit(digit)
+      updateDisplay()
     case "sin" =>
       calculator.inputSine()
       updateDisplay()
@@ -87,9 +90,6 @@ object CalculatorGUI extends JFXApp {
       updateDisplay()
     case "n!" =>
       calculator.inputFactorial()
-      updateDisplay()
-    case digit if "0123456789".contains(digit) =>
-      calculator.inputDigit(digit)
       updateDisplay()
     case "." =>
       calculator.inputDecimal()
